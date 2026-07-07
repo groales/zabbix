@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: zabbix-postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: Europe/Madrid
+    volumes:
+      - zabbix_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.4-latest
+    container_name: zabbix-server
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_SERVER_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ZBX_STARTPINGERS: 5
+      ZBX_STARTDISCOVERERS: 5
+      ZBX_CACHESIZE: 256M
+      ZBX_HISTORYCACHESIZE: 128M
+      ZBX_TRENDCACHESIZE: 64M
+      ZBX_VALUECACHESIZE: 128M
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "10051:10051"
+    volumes:
+      - zabbix_snmptraps:/var/lib/zabbix/snmptraps
+      - zabbix_export:/var/lib/zabbix/export
+    networks:
+      - default
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.4-latest
+    container_name: zabbix-web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      DB_SERVER_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PHP_TZ: ${PHP_TZ}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_started
+    expose:
+      - "8080"
+    networks:
+      - default
+      - proxy
+
+volumes:
+  zabbix_pgdata:
+    name: zabbix_pgdata
+  zabbix_snmptraps:
+    name: zabbix_snmptraps
+  zabbix_export:
+    name: zabbix_export
+
+networks:
+  default:
+  proxy:
+    external: true

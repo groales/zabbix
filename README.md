@@ -50,29 +50,8 @@ POSTGRES_PASSWORD=tu_password_seguro
 PHP_TZ=Europe/Madrid
 ```
 
-### 3. Revisar `compose.yaml`
 
-```yaml
-services:
-  postgres:
-    image: postgres:18
-    ...
-  zabbix-server:
-    image: zabbix/zabbix-server-pgsql:alpine-7.4-latest
-    ports:
-      - "10051:10051"
-    ...
-  zabbix-web:
-    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.4-latest
-    expose:
-      - "8080"
-    ...
-  zabbix-agent2:
-    image: zabbix/zabbix-agent2:alpine-7.4-latest
-    ...
-```
-
-### 4. Crear la red y levantar el servicio
+### 3. Crear la red y levantar el servicio
 
 ```bash
 docker network create proxy

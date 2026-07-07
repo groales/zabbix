@@ -69,6 +69,20 @@ services:
       - default
       - proxy
 
+  zabbix-agent2:
+    image: zabbix/zabbix-agent2:alpine-7.4-latest
+    container_name: zabbix-agent2
+    restart: unless-stopped
+    environment:
+      ZBX_HOSTNAME: Zabbix server
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_SERVER_ACTIVE: zabbix-server
+      TZ: Europe/Madrid
+    depends_on:
+      - zabbix-server
+    networks:
+      - default
+
 volumes:
   zabbix_pgdata:
     name: zabbix_pgdata

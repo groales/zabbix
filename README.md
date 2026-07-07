@@ -67,6 +67,9 @@ services:
     expose:
       - "8080"
     ...
+  zabbix-agent2:
+    image: zabbix/zabbix-agent2:alpine-7.4-latest
+    ...
 ```
 
 ### 4. Crear la red y levantar el servicio
@@ -107,6 +110,7 @@ Credenciales por defecto:
 docker compose ps
 docker compose logs -f zabbix-server
 docker compose logs -f zabbix-web
+docker compose logs -f zabbix-agent2
 docker compose logs -f postgres
 docker compose restart zabbix-server
 docker compose pull
